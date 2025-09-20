@@ -42,6 +42,8 @@ const config: HardhatUserConfig = {
     deployer: {
       // By default, it will take the first Hardhat account as the deployer
       default: 0,
+      // For Monad Testnet, use the deployer private key
+      421614: 0,
     },
   },
   networks: {
@@ -123,6 +125,11 @@ const config: HardhatUserConfig = {
     },
     celoSepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org/",
+      accounts: [deployerPrivateKey],
+    },
+    monad_testnet: {
+      url: "https://testnet-rpc.monad.xyz",
+      chainId: 10143,
       accounts: [deployerPrivateKey],
     },
   },

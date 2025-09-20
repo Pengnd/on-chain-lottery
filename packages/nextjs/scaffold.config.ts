@@ -13,9 +13,33 @@ export type ScaffoldConfig = BaseConfig;
 
 export const DEFAULT_ALCHEMY_API_KEY = "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
+// 定义 Monad Testnet
+const monadTestnet = {
+  id: 421614,
+  name: "Monad Testnet",
+  network: "monad-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "Monad",
+    symbol: "MON",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://testnet-rpc.monad.xyz/"],
+    },
+    public: {
+      http: ["https://testnet-rpc.monad.xyz/"],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Monad Explorer", url: "https://testnet-explorer.monad.xyz" },
+  },
+  testnet: true,
+} as const;
+
 const scaffoldConfig = {
   // The networks on which your DApp is live
-  targetNetworks: [chains.hardhat],
+  targetNetworks: [monadTestnet],
   // The interval at which your front-end polls the RPC servers for new data (it has no effect if you only target the local network (default is 4000))
   pollingInterval: 30000,
   // This is ours Alchemy's default API key.
