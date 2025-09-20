@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useDirectContract } from "~~/hooks/scaffold-eth/useDirectContract";
 
 /**
  * 创建抽签弹窗组件属性
@@ -19,9 +19,7 @@ export default function CreateLotteryModal({ onClose, onSuccess }: CreateLottery
   const [loading, setLoading] = useState<boolean>(false);
 
   // 写入合约
-  const { writeContractAsync: writeLotteryAsync } = useScaffoldWriteContract({
-    contractName: "Lottery",
-  });
+  const { createLottery } = useDirectContract();
 
   /**
    * 创建新的抽签活动
@@ -39,10 +37,9 @@ export default function CreateLotteryModal({ onClose, onSuccess }: CreateLottery
 
     setLoading(true);
     try {
-      await writeLotteryAsync({
-        functionName: "createLottery",
-        args: [BigInt(duration)],
-      });
+      console.log("开始创建抽签，持续时间:", duration);
+      const result = await createLottery(BigInt(duration));
+      console.log("抽签创建交易结果:", result);
       alert("抽签活动创建成功！");
       onSuccess();
     } catch (error) {

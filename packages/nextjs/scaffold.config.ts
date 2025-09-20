@@ -15,7 +15,7 @@ export const DEFAULT_ALCHEMY_API_KEY = "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
 // 定义 Monad Testnet
 const monadTestnet = {
-  id: 421614,
+  id: 10143,
   name: "Monad Testnet",
   network: "monad-testnet",
   nativeCurrency: {
@@ -25,10 +25,16 @@ const monadTestnet = {
   },
   rpcUrls: {
     default: {
-      http: ["https://testnet-rpc.monad.xyz/"],
+      http: [
+        "https://testnet-rpc.monad.xyz/",
+        "https://testnet-rpc.monad.xyz",
+      ],
     },
     public: {
-      http: ["https://testnet-rpc.monad.xyz/"],
+      http: [
+        "https://testnet-rpc.monad.xyz/",
+        "https://testnet-rpc.monad.xyz",
+      ],
     },
   },
   blockExplorers: {

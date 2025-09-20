@@ -15,11 +15,12 @@ const { onlyLocalBurnerWallet, targetNetworks } = scaffoldConfig;
 
 const wallets = [
   metaMaskWallet,
-  walletConnectWallet,
-  ledgerWallet,
-  coinbaseWallet,
-  rainbowWallet,
-  safeWallet,
+  // 暂时禁用其他钱包以减少网络连接问题
+  // walletConnectWallet,
+  // ledgerWallet,
+  // coinbaseWallet,
+  // rainbowWallet,
+  // safeWallet,
   ...(!targetNetworks.some(network => network.id !== (chains.hardhat as chains.Chain).id) || !onlyLocalBurnerWallet
     ? [rainbowkitBurnerWallet]
     : []),

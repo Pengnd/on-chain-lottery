@@ -11,6 +11,17 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "deploy": "ts-node scripts/runHardhatDeployWithPK.ts",
+    "deploy:testnet": "ts-node scripts/deploy-testnet.ts",
+    "deploy:quick": "ts-node scripts/quick-deploy.ts",
+    "deploy:sepolia": "yarn deploy:testnet sepolia",
+    "deploy:arbitrum-sepolia": "yarn deploy:testnet arbitrumSepolia",
+    "deploy:optimism-sepolia": "yarn deploy:testnet optimismSepolia",
+    "deploy:polygon-amoy": "yarn deploy:testnet polygonAmoy",
+    "deploy:base-sepolia": "yarn deploy:testnet baseSepolia",
+    "deploy:scroll-sepolia": "yarn deploy:testnet scrollSepolia",
+    "deploy:celo-sepolia": "yarn deploy:testnet celoSepolia",
+    "deploy:monad-testnet": "yarn deploy:testnet monad_testnet",
+    "deploy:monad": "ts-node scripts/deploy-monad.ts",
     "flatten": "hardhat flatten",
     "fork": "MAINNET_FORKING_ENABLED=true hardhat node --network hardhat --no-deploy",
     "format": "prettier --write './**/*.(ts|sol)'",
@@ -19,14 +30,19 @@
     "lint": "eslint",
     "lint-staged": "eslint",
     "test": "REPORT_GAS=true hardhat test --network hardhat",
-    "verify": "hardhat etherscan-verify"
+    "verify": "hardhat etherscan-verify",
+    "verify:contract": "ts-node scripts/verify-contract.ts",
+    "verify:all": "yarn verify:contract",
+    "example": "ts-node scripts/example-usage.ts"
   },
   "dependencies": {
     "@inquirer/password": "^4.0.2",
     "@openzeppelin/contracts": "~5.0.2",
     "@typechain/ethers-v6": "~0.5.1",
+    "@types/inquirer": "^9.0.9",
     "dotenv": "~16.4.5",
     "envfile": "~7.1.0",
+    "inquirer": "^12.9.6",
     "qrcode": "~1.5.4"
   },
   "devDependencies": {

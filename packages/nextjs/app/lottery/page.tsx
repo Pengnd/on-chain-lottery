@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import CreateLotteryModal from "./components/CreateLotteryModal";
 import LotteryDetailModal from "./components/LotteryDetailModal";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useDirectContract } from "~~/hooks/scaffold-eth/useDirectContract";
 
 /**
  * 抽签活动信息接口
@@ -27,57 +27,83 @@ export default function LotteryPage() {
   const [selectedLottery, setSelectedLottery] = useState<LotteryInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // 读取下一个抽签ID
-  const { data: nextLotteryId } = useScaffoldReadContract({
-    contractName: "Lottery",
-    functionName: "nextLotteryId",
-  });
-
-  // 写入合约
-  const { writeContractAsync: writeLotteryAsync } = useScaffoldWriteContract({
-    contractName: "Lottery",
-  });
+  // 使用直接调用合约的 hook
+  const {
+    nextLotteryId,
+    isLoadingNextId,
+    nextIdError,
+    refetchNextLotteryId,
+    allLotteries,
+    refetchLotteries,
+    joinLottery,
+    selectWinner,
+    contractConfig,
+    isCorrectNetwork,
+  } = useDirectContract();
 
   // 更新抽签数量
   useEffect(() => {
-    if (nextLotteryId) {
+    console.log("=== 调试信息 ===");
+    console.log("nextLotteryId:", nextLotteryId);
+    console.log("isLoadingNextId:", isLoadingNextId);
+    console.log("nextIdError:", nextIdError);
+    console.log("当前网络链ID:", window.ethereum?.chainId);
+    console.log("当前网络名称:", window.ethereum?.networkVersion);
+    console.log("合约配置:", contractConfig);
+
+    if (nextLotteryId !== undefined) {
       setLotteryCount(Number(nextLotteryId));
     }
-  }, [nextLotteryId]);
+  }, [nextLotteryId, isLoadingNextId, nextIdError, contractConfig]);
 
   // 组件加载时获取抽签信息
   useEffect(() => {
     const fetchLotteries = async () => {
-      if (!nextLotteryId) return;
+      if (nextLotteryId === undefined) return;
 
       const lotteryCount = Number(nextLotteryId);
+      console.log("Fetching lotteries, count:", lotteryCount);
+
+      if (lotteryCount === 0) {
+        setLotteries([]);
+        return;
+      }
+
       const lotteryData: LotteryInfo[] = [];
 
-      // 模拟数据，实际应用中应该使用合约读取
-      for (let i = 0; i < lotteryCount; i++) {
-        lotteryData.push({
-          lotteryId: i,
-          endTime: BigInt(Date.now() + (i + 1) * 3600000), // 模拟不同的结束时间
-          participantCount: Math.floor(Math.random() * 10),
-          isActive: true,
-          winner: "0x0000000000000000000000000000000000000000",
-          creator: "0x1234567890123456789012345678901234567890",
-        });
+      // 使用真实的合约数据
+      if (allLotteries && allLotteries[0]) {
+        const [lotteryIds, endTimes, participantCounts, isActiveArray, winners] = allLotteries;
+
+        for (let i = 0; i < lotteryIds.length; i++) {
+          lotteryData.push({
+            lotteryId: Number(lotteryIds[i]),
+            endTime: endTimes[i],
+            participantCount: Number(participantCounts[i]),
+            isActive: isActiveArray[i],
+            winner: winners[i],
+            creator: "0x1234567890123456789012345678901234567890", // 暂时使用固定值
+          });
+        }
       }
 
       setLotteries(lotteryData);
     };
 
     fetchLotteries();
-  }, [nextLotteryId]);
+  }, [nextLotteryId, allLotteries]);
 
   /**
    * 抽签创建后的回调
    */
-  const handleLotteryCreated = () => {
+  const handleLotteryCreated = async () => {
     setShowCreateModal(false);
-    // 重新获取抽签列表
-    window.location.reload();
+    // 等待一下再刷新数据，确保交易已经确认
+    setTimeout(async () => {
+      console.log("刷新抽签数据...");
+      await refetchNextLotteryId(); // Manually refetch data
+      await refetchLotteries(); // 刷新抽签列表
+    }, 3000);
   };
 
   /**
@@ -86,10 +112,7 @@ export default function LotteryPage() {
   const handleJoinLottery = async (lotteryId: number) => {
     setLoading(true);
     try {
-      await writeLotteryAsync({
-        functionName: "joinLottery",
-        args: [BigInt(lotteryId)],
-      });
+      await joinLottery(BigInt(lotteryId));
       alert("成功参与抽签！");
       window.location.reload();
     } catch (error) {
@@ -106,10 +129,7 @@ export default function LotteryPage() {
   const handleDrawWinner = async (lotteryId: number) => {
     setLoading(true);
     try {
-      await writeLotteryAsync({
-        functionName: "drawWinner",
-        args: [BigInt(lotteryId)],
-      });
+      await selectWinner(BigInt(lotteryId));
       alert("开奖成功！");
       window.location.reload();
     } catch (error) {
@@ -179,11 +199,28 @@ export default function LotteryPage() {
               抽签活动列表
             </h2>
 
+            {/* 网络状态提示 */}
+            {!isCorrectNetwork && (
+              <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-red-400 mr-2">⚠️</span>
+                  <span className="text-red-300">请切换到 Monad 测试网 (链ID: 10143) 以使用抽签功能</span>
+                </div>
+              </div>
+            )}
+
             {lotteries.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-8xl mb-6">🎯</div>
                 <p className="text-white text-xl mb-2">暂无抽签活动</p>
-                <p className="text-gray-300 text-sm">点击&ldquo;创建新抽签&rdquo;开始第一个活动！</p>
+                <p className="text-gray-300 text-sm mb-4">点击&ldquo;创建新抽签&rdquo;开始第一个活动！</p>
+                {isLoadingNextId ? (
+                  <p className="text-blue-300 text-sm">正在加载抽签数据...</p>
+                ) : nextIdError ? (
+                  <p className="text-red-300 text-sm">加载抽签数据失败，请检查网络连接</p>
+                ) : (
+                  <p className="text-gray-400 text-sm">当前抽签数量: {nextLotteryId || 0}</p>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">

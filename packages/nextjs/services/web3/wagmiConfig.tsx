@@ -1,5 +1,5 @@
 import { wagmiConnectors } from "./wagmiConnectors";
-import { Chain, createClient, fallback, http } from "viem";
+import { Chain, createClient, http } from "viem";
 import { hardhat, mainnet } from "viem/chains";
 import { createConfig } from "wagmi";
 import scaffoldConfig, { DEFAULT_ALCHEMY_API_KEY, ScaffoldConfig } from "~~/scaffold.config";
@@ -17,21 +17,32 @@ export const wagmiConfig = createConfig({
   connectors: wagmiConnectors(),
   ssr: true,
   client: ({ chain }) => {
-    let rpcFallbacks = [http()];
-    const rpcOverrideUrl = (scaffoldConfig.rpcOverrides as ScaffoldConfig["rpcOverrides"])?.[chain.id];
-    if (rpcOverrideUrl) {
-      rpcFallbacks = [http(rpcOverrideUrl), http()];
-    } else {
-      const alchemyHttpUrl = getAlchemyHttpUrl(chain.id);
-      if (alchemyHttpUrl) {
-        const isUsingDefaultKey = scaffoldConfig.alchemyApiKey === DEFAULT_ALCHEMY_API_KEY;
-        rpcFallbacks = isUsingDefaultKey ? [http(), http(alchemyHttpUrl)] : [http(alchemyHttpUrl), http()];
-      }
+    // 使用更稳定的 RPC 配置
+    let rpcUrl = `https://testnet-rpc.monad.xyz/`;
+    
+    // 根据链ID选择RPC
+    if (chain.id === 10143) {
+      rpcUrl = `https://testnet-rpc.monad.xyz/`;
+    } else if (chain.id === 1) {
+      rpcUrl = `https://eth-mainnet.g.alchemy.com/v2/${scaffoldConfig.alchemyApiKey}`;
+    } else if (chain.id === 31337) {
+      rpcUrl = `http://localhost:8545`;
     }
+    
     return createClient({
       chain,
-      transport: fallback(rpcFallbacks),
-      ...(chain.id !== (hardhat as Chain).id ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
+      transport: http(rpcUrl, {
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 10000,
+      }),
+      pollingInterval: 10000, // 增加轮询间隔
+      batch: {
+        multicall: {
+          batchSize: 1024,
+          wait: 16,
+        },
+      },
     });
   },
 });
