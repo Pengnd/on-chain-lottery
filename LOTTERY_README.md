@@ -185,7 +185,7 @@ packages/
 
 ### 调试模式
 
-访问 http://localhost:3000/debug 查看合约交互界面。
+访问 http://localhost:3000/lottery 使用抽签系统界面。
 
 ## 📄 许可证
 

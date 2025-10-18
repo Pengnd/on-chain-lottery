@@ -21,21 +21,17 @@ class ContractVerifier {
    * @param contractName 合约名称
    * @param constructorArgs 构造函数参数
    */
-  async verifyContract(
-    contractAddress: string, 
-    contractName: string, 
-    constructorArgs: any[] = []
-  ): Promise<boolean> {
+  async verifyContract(contractAddress: string, contractName: string, constructorArgs: any[] = []): Promise<boolean> {
     console.log(`\n🔍 开始验证 ${contractName} 合约...`);
     console.log(`📍 合约地址: ${contractAddress}`);
     console.log(`🌐 网络: ${this.networkName}`);
-    
+
     try {
       await this.hre.run("verify:verify", {
         address: contractAddress,
         constructorArguments: constructorArgs,
       });
-      
+
       console.log(`✅ ${contractName} 合约验证成功!`);
       return true;
     } catch (error: any) {
@@ -53,27 +49,25 @@ class ContractVerifier {
    * 验证多个合约
    * @param contracts 合约信息数组
    */
-  async verifyMultipleContracts(contracts: Array<{
-    address: string;
-    name: string;
-    constructorArgs?: any[];
-  }>): Promise<void> {
+  async verifyMultipleContracts(
+    contracts: Array<{
+      address: string;
+      name: string;
+      constructorArgs?: any[];
+    }>,
+  ): Promise<void> {
     console.log(`\n🚀 开始批量验证合约...`);
-    
+
     let successCount = 0;
-    let totalCount = contracts.length;
+    const totalCount = contracts.length;
 
     for (const contract of contracts) {
-      const success = await this.verifyContract(
-        contract.address,
-        contract.name,
-        contract.constructorArgs || []
-      );
-      
+      const success = await this.verifyContract(contract.address, contract.name, contract.constructorArgs || []);
+
       if (success) {
         successCount++;
       }
-      
+
       // 等待一段时间避免请求过于频繁
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
@@ -86,13 +80,13 @@ class ContractVerifier {
    */
   async verifyFromDeployments(): Promise<void> {
     console.log(`\n📖 从部署记录中读取合约信息...`);
-    
+
     try {
       const deployments = await this.hre.deployments.all();
       const contracts = Object.entries(deployments).map(([name, deployment]) => ({
         address: deployment.address,
         name: name,
-        constructorArgs: deployment.args || []
+        constructorArgs: deployment.args || [],
       }));
 
       if (contracts.length === 0) {
@@ -111,12 +105,22 @@ class ContractVerifier {
    */
   isVerificationSupported(): boolean {
     const supportedNetworks = [
-      "mainnet", "sepolia", "arbitrum", "arbitrumSepolia", 
-      "optimism", "optimismSepolia", "polygon", "polygonAmoy",
-      "base", "baseSepolia", "scroll", "scrollSepolia",
-      "celo", "celoSepolia"
+      "mainnet",
+      "sepolia",
+      "arbitrum",
+      "arbitrumSepolia",
+      "optimism",
+      "optimismSepolia",
+      "polygon",
+      "polygonAmoy",
+      "base",
+      "baseSepolia",
+      "scroll",
+      "scrollSepolia",
+      "celo",
+      "celoSepolia",
     ];
-    
+
     return supportedNetworks.includes(this.networkName);
   }
 }
@@ -125,17 +129,19 @@ class ContractVerifier {
  * 主函数
  */
 async function main() {
-  const hre = require("hardhat");
+  const hre = await import("hardhat");
   const networkName = process.argv[2] || hre.network.name;
-  
+
   console.log(`🌐 当前网络: ${networkName}`);
-  
+
   const verifier = new ContractVerifier(hre, networkName);
-  
+
   // 检查是否支持验证
   if (!verifier.isVerificationSupported()) {
     console.log(`⚠️  网络 ${networkName} 不支持合约验证`);
-    console.log(`✅ 支持的网络: mainnet, sepolia, arbitrum, arbitrumSepolia, optimism, optimismSepolia, polygon, polygonAmoy, base, baseSepolia, scroll, scrollSepolia, celo, celoSepolia`);
+    console.log(
+      `✅ 支持的网络: mainnet, sepolia, arbitrum, arbitrumSepolia, optimism, optimismSepolia, polygon, polygonAmoy, base, baseSepolia, scroll, scrollSepolia, celo, celoSepolia`,
+    );
     return;
   }
 
@@ -153,8 +159,7 @@ async function main() {
 }
 
 // 运行脚本
-main().catch((error) => {
+main().catch(error => {
   console.error(error);
   process.exit(1);
 });
-

@@ -53,7 +53,7 @@ console.log(`
    # 启动前端
    cd ../nextjs
    yarn start
-   # 访问 http://localhost:3000/debug 测试合约
+   # 访问 http://localhost:3000/lottery 使用抽签系统
 
 📚 更多信息:
    - 详细文档: TESTNET_DEPLOYMENT_GUIDE.md
@@ -74,9 +74,9 @@ const hasAlchemyKey = !!process.env.ALCHEMY_API_KEY;
 const hasEtherscanKey = !!process.env.ETHERSCAN_V2_API_KEY;
 const hasPrivateKey = !!(process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY_ENCRYPTED);
 
-console.log(`✅ Alchemy API Key: ${hasAlchemyKey ? '已配置' : '❌ 未配置'}`);
-console.log(`✅ Etherscan API Key: ${hasEtherscanKey ? '已配置' : '❌ 未配置'}`);
-console.log(`✅ 部署者私钥: ${hasPrivateKey ? '已配置' : '❌ 未配置'}`);
+console.log(`✅ Alchemy API Key: ${hasAlchemyKey ? "已配置" : "❌ 未配置"}`);
+console.log(`✅ Etherscan API Key: ${hasEtherscanKey ? "已配置" : "❌ 未配置"}`);
+console.log(`✅ 部署者私钥: ${hasPrivateKey ? "已配置" : "❌ 未配置"}`);
 
 if (!hasAlchemyKey || !hasEtherscanKey || !hasPrivateKey) {
   console.log(`

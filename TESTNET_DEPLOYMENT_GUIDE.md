@@ -236,7 +236,7 @@ yarn verify --network <network> <contract_address>
 
 ### 2. 测试合约功能
 
-访问 `http://localhost:3000/debug` 页面，测试合约的各项功能。
+访问 `http://localhost:3000/lottery` 页面，使用抽签系统的各项功能。
 
 ### 3. 监控合约状态
 

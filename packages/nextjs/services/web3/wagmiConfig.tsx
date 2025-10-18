@@ -1,9 +1,8 @@
 import { wagmiConnectors } from "./wagmiConnectors";
 import { Chain, createClient, http } from "viem";
-import { hardhat, mainnet } from "viem/chains";
+import { mainnet } from "viem/chains";
 import { createConfig } from "wagmi";
-import scaffoldConfig, { DEFAULT_ALCHEMY_API_KEY, ScaffoldConfig } from "~~/scaffold.config";
-import { getAlchemyHttpUrl } from "~~/utils/scaffold-eth";
+import scaffoldConfig from "~~/scaffold.config";
 
 const { targetNetworks } = scaffoldConfig;
 
@@ -16,10 +15,10 @@ export const wagmiConfig = createConfig({
   chains: enabledChains,
   connectors: wagmiConnectors(),
   ssr: true,
-  client: ({ chain }) => {
+  client: ({ chain }: { chain: any }) => {
     // 使用更稳定的 RPC 配置
     let rpcUrl = `https://testnet-rpc.monad.xyz/`;
-    
+
     // 根据链ID选择RPC
     if (chain.id === 10143) {
       rpcUrl = `https://testnet-rpc.monad.xyz/`;
@@ -28,7 +27,7 @@ export const wagmiConfig = createConfig({
     } else if (chain.id === 31337) {
       rpcUrl = `http://localhost:8545`;
     }
-    
+
     return createClient({
       chain,
       transport: http(rpcUrl, {

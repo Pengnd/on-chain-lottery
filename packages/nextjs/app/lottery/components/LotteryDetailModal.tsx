@@ -35,24 +35,48 @@ export default function LotteryDetailModal({ lottery, onClose, onJoin, onDraw, l
   const [hasParticipated, setHasParticipated] = useState<boolean>(false);
 
   // 使用直接调用合约的 hook
-  const { allLotteries } = useDirectContract();
+  const { getParticipants } = useDirectContract();
+  const [loadingParticipants, setLoadingParticipants] = useState<boolean>(false);
+
+  // 添加调试日志
+  console.log("🎯 LotteryDetailModal 渲染 - participants:", participants, "loading:", loadingParticipants);
 
   // 从 allLotteries 中获取参与者数据
-  const participantsData = allLotteries && allLotteries[2] ? allLotteries[2][lottery.lotteryId] : 0;
+  // const participantsData = allLotteries && allLotteries[2] ? allLotteries[2][lottery.lotteryId] : 0;
 
-  // 更新参与者数据
+  // 获取真实的参与者列表
   useEffect(() => {
-    // 由于 allLotteries 只返回参与者数量，我们使用模拟数据
-    // 在实际应用中，如果需要详细的参与者列表，需要调用单独的合约函数
-    if (participantsData && typeof participantsData === "number") {
-      // 创建模拟的参与者地址列表
-      const mockParticipants = Array.from(
-        { length: participantsData },
-        () => `0x${Math.random().toString(16).substr(2, 40)}`,
-      );
-      setParticipants(mockParticipants);
-    }
-  }, [participantsData]);
+    const fetchParticipants = async () => {
+      console.log(`🔍 开始获取参与者列表 - 抽签ID: ${lottery.lotteryId}, 参与人数: ${lottery.participantCount}`);
+
+      if (lottery.participantCount > 0) {
+        setLoadingParticipants(true);
+        try {
+          console.log(`🔍 正在获取抽签 #${lottery.lotteryId} 的参与者列表...`);
+          const realParticipants = await getParticipants(BigInt(lottery.lotteryId));
+          console.log(`✅ 成功获取到 ${realParticipants.length} 个参与者:`, realParticipants);
+          setParticipants(realParticipants);
+        } catch (error) {
+          console.error("获取参与者列表失败:", error);
+          // 如果获取失败，使用模拟数据作为备选
+          console.log("🔄 使用模拟数据作为备选方案");
+          const mockParticipants = Array.from(
+            { length: lottery.participantCount },
+            () => `0x${Math.random().toString(16).substr(2, 40)}`,
+          );
+          console.log(`🔄 生成模拟参与者:`, mockParticipants);
+          setParticipants(mockParticipants);
+        } finally {
+          setLoadingParticipants(false);
+        }
+      } else {
+        console.log("📝 参与人数为0，设置空数组");
+        setParticipants([]);
+      }
+    };
+
+    fetchParticipants();
+  }, [lottery.lotteryId, lottery.participantCount, getParticipants]);
 
   // 更新参与状态 - 暂时设为 false，实际应用中需要从合约读取
   useEffect(() => {
@@ -139,10 +163,20 @@ export default function LotteryDetailModal({ lottery, onClose, onJoin, onDraw, l
           </div>
 
           {/* 参与者列表 */}
-          {participants.length > 0 && (
-            <div className="card bg-base-200">
-              <div className="card-body">
-                <h4 className="card-title text-lg">👥 参与者列表</h4>
+          <div className="card bg-base-200">
+            <div className="card-body">
+              <h4 className="card-title text-lg">👥 参与者列表</h4>
+              {/* 调试信息 */}
+              <div className="text-xs text-gray-500 mb-2">
+                调试: loading={loadingParticipants.toString()}, participants.length={participants.length},
+                participantCount={lottery.participantCount}
+              </div>
+              {loadingParticipants ? (
+                <div className="flex items-center justify-center py-8">
+                  <span className="loading loading-spinner loading-md"></span>
+                  <span className="ml-2">加载参与者列表...</span>
+                </div>
+              ) : participants.length > 0 ? (
                 <div className="max-h-48 overflow-y-auto">
                   <div className="space-y-2">
                     {participants.slice(0, 10).map((participant, index) => (
@@ -161,9 +195,16 @@ export default function LotteryDetailModal({ lottery, onClose, onJoin, onDraw, l
                     )}
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-4 text-base-content/50">
+                  暂无参与者
+                  <div className="text-xs text-gray-400 mt-1">
+                    参与人数: {lottery.participantCount}, 参与者数组长度: {participants.length}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* 中奖结果 */}
           <div className="card bg-base-200">
